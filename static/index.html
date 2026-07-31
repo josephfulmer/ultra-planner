@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>For Alicia &mdash; 50K Training Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wordmark">
+    <span class="wordmark-glyph">&#9650;</span>
+    <span>FOR ALICIA</span>
+  </div>
+  <div class="topbar-sub">50K training, planned</div>
+</header>
+
+<main>
+
+  <!-- ============ HERO / FORM ============ -->
+  <section id="briefing" class="briefing">
+    <div class="briefing-copy">
+      <p class="eyebrow">It has begun...</p>
+      <h1>Tell us where<br>you're starting.</h1>
+      <p class="lede">Four numbers is all it takes &mdash; we'll lay out every week between now and race day, base miles to summit.</p>
+    </div>
+
+    <form id="planForm" class="briefing-form">
+
+      <div class="field-row">
+        <label for="currentVolume">Current weekly volume</label>
+        <div class="input-with-unit">
+          <input type="number" id="currentVolume" min="1" step="1" value="30" required />
+          <div class="unit-toggle" data-target="volume">
+            <button type="button" class="unit-btn active" data-unit="km">km</button>
+            <button type="button" class="unit-btn" data-unit="mi">mi</button>
+          </div>
+        </div>
+        <p class="field-hint">What you're averaging per week right now, not your best week ever.</p>
+      </div>
+
+      <div class="field-row">
+        <label for="longestRun">Longest run, last 4 weeks</label>
+        <div class="input-with-unit">
+          <input type="number" id="longestRun" min="1" step="1" value="16" required />
+          <div class="unit-toggle" data-target="longrun">
+            <button type="button" class="unit-btn active" data-unit="km">km</button>
+            <button type="button" class="unit-btn" data-unit="mi">mi</button>
+          </div>
+        </div>
+        <p class="field-hint">Your current long-run distance, done recently and comfortably.</p>
+      </div>
+
+      <div class="field-row">
+        <label for="experience">Running experience</label>
+        <select id="experience" required>
+          <option value="beginner">New to distance running</option>
+          <option value="intermediate" selected>Run regularly, done a half or full marathon</option>
+          <option value="advanced">Experienced, run(s) beyond marathon distance</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <label for="daysPerWeek">Training days per week</label>
+        <select id="daysPerWeek" required>
+          <option value="3">3 days</option>
+          <option value="4" selected>4 days</option>
+          <option value="5">5 days</option>
+          <option value="6">6 days</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <label for="raceDate">Race date</label>
+        <input type="date" id="raceDate" required />
+      </div>
+
+      <button type="submit" class="cta">Chart the route</button>
+      <p id="formError" class="form-error" hidden></p>
+    </form>
+  </section>
+
+  <!-- ============ RESULTS ============ -->
+  <section id="results" class="results" hidden>
+
+    <div id="warningBanner" class="warning-banner" hidden></div>
+
+    <div class="results-header">
+      <div>
+        <p class="eyebrow">Your plan</p>
+        <h2 id="resultsTitle">The climb to 50K</h2>
+      </div>
+      <div class="results-actions">
+        <button id="downloadIcs" class="cta cta-outline">Add to Apple Calendar</button>
+        <button id="startOver" class="text-btn">Start over</button>
+      </div>
+    </div>
+
+    <div class="stat-strip" id="statStrip"></div>
+
+    <div class="profile-wrap">
+      <svg id="profileChart" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="profile-legend">
+        <span><i class="dot dot-base"></i>Base</span>
+        <span><i class="dot dot-build"></i>Build</span>
+        <span><i class="dot dot-peak"></i>Peak</span>
+        <span><i class="dot dot-taper"></i>Taper</span>
+      </div>
+    </div>
+
+    <div id="weekList" class="week-list"></div>
+  </section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
