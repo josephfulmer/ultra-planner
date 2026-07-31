@@ -1,30 +1,40 @@
 const KM_PER_MI = 1.60934;
 
-// ---------- Unit toggles ----------
-const unitState = { volume: 'km', longrun: 'km' };
+// ---------- Unit toggle (shared across inputs AND results display) ----------
+let displayUnit = 'km';
+
+function setDisplayUnit(newUnit) {
+  if (newUnit === displayUnit) return;
+  document.querySelectorAll('.unit-toggle').forEach((toggle) => {
+    const input = toggle.previousElementSibling;
+    const val = parseFloat(input.value);
+    if (!isNaN(val)) {
+      input.value = newUnit === 'mi'
+        ? Math.round((val / KM_PER_MI) * 10) / 10
+        : Math.round(val * KM_PER_MI * 10) / 10;
+    }
+    toggle.querySelectorAll('.unit-btn').forEach((b) => b.classList.toggle('active', b.dataset.unit === newUnit));
+  });
+  displayUnit = newUnit;
+}
 
 document.querySelectorAll('.unit-toggle').forEach((toggle) => {
-  const target = toggle.dataset.target;
-  const input = toggle.previousElementSibling;
   toggle.querySelectorAll('.unit-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const newUnit = btn.dataset.unit;
-      if (newUnit === unitState[target]) return;
-      const val = parseFloat(input.value);
-      if (!isNaN(val)) {
-        input.value = newUnit === 'mi'
-          ? Math.round((val / KM_PER_MI) * 10) / 10
-          : Math.round(val * KM_PER_MI * 10) / 10;
-      }
-      unitState[target] = newUnit;
-      toggle.querySelectorAll('.unit-btn').forEach((b) => b.classList.toggle('active', b === btn));
-    });
+    btn.addEventListener('click', () => setDisplayUnit(btn.dataset.unit));
   });
 });
 
-function toKm(value, unitKey) {
+function toKm(value) {
   const v = parseFloat(value) || 0;
-  return unitState[unitKey] === 'mi' ? v * KM_PER_MI : v;
+  return displayUnit === 'mi' ? v * KM_PER_MI : v;
+}
+
+// Converts a km figure into the currently selected display unit, as a labeled string.
+function fmtDist(km, decimals = 0) {
+  if (displayUnit === 'mi') {
+    return `${(km / KM_PER_MI).toFixed(decimals)} mi`;
+  }
+  return `${km.toFixed(decimals)} km`;
 }
 
 // Default race date: 18 weeks out, a common minimum ultra build.
@@ -47,8 +57,8 @@ form.addEventListener('submit', async (e) => {
   formError.hidden = true;
 
   const input = {
-    current_weekly_km: Math.round(toKm(document.getElementById('currentVolume').value, 'volume') * 10) / 10,
-    longest_recent_run_km: Math.round(toKm(document.getElementById('longestRun').value, 'longrun') * 10) / 10,
+    current_weekly_km: Math.round(toKm(document.getElementById('currentVolume').value) * 10) / 10,
+    longest_recent_run_km: Math.round(toKm(document.getElementById('longestRun').value) * 10) / 10,
     experience: document.getElementById('experience').value,
     days_per_week: parseInt(document.getElementById('daysPerWeek').value, 10),
     race_date: raceDateInput.value,
@@ -143,9 +153,9 @@ function renderResults(plan) {
 
   document.getElementById('statStrip').innerHTML = `
     <div class="stat"><p class="stat-label">Weeks</p><p class="stat-value">${plan.total_weeks}</p></div>
-    <div class="stat"><p class="stat-label">Peak week</p><p class="stat-value">${plan.peak_weekly_km.toFixed(0)} km</p></div>
-    <div class="stat"><p class="stat-label">Longest run</p><p class="stat-value">${plan.peak_long_run_km.toFixed(0)} km</p></div>
-    <div class="stat"><p class="stat-label">Race distance</p><p class="stat-value">50 km</p></div>
+    <div class="stat"><p class="stat-label">Peak week</p><p class="stat-value">${fmtDist(plan.peak_weekly_km)}</p></div>
+    <div class="stat"><p class="stat-label">Longest run</p><p class="stat-value">${fmtDist(plan.peak_long_run_km)}</p></div>
+    <div class="stat"><p class="stat-label">Race distance</p><p class="stat-value">${fmtDist(50)}</p></div>
   `;
 
   renderChart(plan);
@@ -179,7 +189,7 @@ function renderChart(plan) {
 
   const dots = points.map((p) => `
     <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${phaseColor(p.phase)}">
-      <title>Week ${p.week.week_number} \u2014 ${p.phase} \u2014 ${p.week.target_km.toFixed(0)} km</title>
+      <title>Week ${p.week.week_number} \u2014 ${p.phase} \u2014 ${fmtDist(p.week.target_km)}</title>
     </circle>`).join('');
 
   const lastPt = points[points.length - 1];
@@ -218,7 +228,7 @@ function renderWeeks(plan) {
         <span class="week-num">WK ${String(week.week_number).padStart(2, '0')}</span>
         <span class="week-phase phase-${week.phase}">${week.phase}</span>
         <span class="week-dates">${fmtDate(week.start_date)} \u2013 ${fmtDate(addDays(week.start_date, 6))}${raceThisWeek ? ' \u2014 race week' : ''}</span>
-        <span class="week-summary">${week.target_km.toFixed(0)} km<small>${runDays} runs \u00b7 long ${week.long_run_km.toFixed(0)} km</small></span>
+        <span class="week-summary">${fmtDist(week.target_km)}<small>${runDays} runs \u00b7 long ${fmtDist(week.long_run_km)}</small></span>
         <span class="week-caret">\u25b6</span>
       </div>
       <div class="week-days">
@@ -241,7 +251,7 @@ function renderWeeks(plan) {
 function dayChip(day) {
   const isRest = day.kind === 'Rest';
   const isRace = day.kind === 'RaceDay';
-  const dist = day.distance_km ? `${day.distance_km.toFixed(0)} km` : '';
+  const dist = day.distance_km ? fmtDist(day.distance_km) : '';
   return `
     <div class="day-chip ${isRest ? 'rest' : ''} ${isRace ? 'race' : ''}">
       <p class="day-weekday">${day.weekday}</p>
